@@ -1,14 +1,17 @@
 package stepdefs;
 
+import cucumber.api.PendingException;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
 import org.testng.annotations.Optional;
 
 import java.io.FileInputStream;
@@ -19,20 +22,19 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.Random;
 
-public class CommonSteps {
+public class CommonSteps extends AbstractStep {
 
-    private WebDriver driver;
-    private int timeOut= 10;
+    private int timeOut = 10;
 
 
     //Click Functions-----------------------------------
-    
+
     /**
      * Bu fonksiyon istenilen alana,
      * belirlenen saniye içinde tıklar
      */
     @When("^I click ([^\"]*)$")
-    public void clickElement(By byLocator){
+    public void clickElement(By byLocator) {
         WebDriverWait wait = new WebDriverWait(driver, timeOut);
         wait.until(ExpectedConditions.elementToBeClickable(byLocator))
                 .click();
@@ -43,15 +45,15 @@ public class CommonSteps {
      * istenilen saniye içinde tıklar
      */
     @When("^I click ([^\"]*) in ([^\"]*) seconds$")
-    public void clickInSecond(By byLocator, int timeout){
+    public void clickInSecond(By byLocator, int timeout) {
         WebDriverWait wait = new WebDriverWait(driver, timeout);
         wait.until(ExpectedConditions.elementToBeClickable(byLocator))
                 .click();
     }
 
-    
+
     //Fill Functions-----------------------------------
-    
+
     /**
      * Bu fonksiyon istenilen alana,
      * belirlenen saniye içinde,
@@ -74,6 +76,7 @@ public class CommonSteps {
         WebDriverWait wait = new WebDriverWait(driver, timeoutInSeconds);
         wait.until(ExpectedConditions.elementToBeClickable(byLocator))
                 .sendKeys(text);
+
     }
 
     /**
@@ -85,6 +88,7 @@ public class CommonSteps {
         wait.until(ExpectedConditions.elementToBeClickable(byLocator))
                 .clear();
     }
+
     /**
      * Bu fonksiyon istenilen alana;
      * rastgele olarak,
@@ -94,7 +98,7 @@ public class CommonSteps {
      */
     @When("^(?:I)? fill: \"([^\"]*)\" with random (\\d+) (string|integer)")
     public void randomFill(By elementKey, int index, String type) {
-        if(type.equalsIgnoreCase("string")){
+        if (type.equalsIgnoreCase("string")) {
             String alphabet = "abcdefghiklmnoprstvyzx";
             Random rand = new Random();
             String longText = "";
@@ -103,9 +107,8 @@ public class CommonSteps {
                 char character = alphabet.charAt(randIndex);
                 longText += character;
             }
-            sendKeys(elementKey,longText);
-        }
-        else{
+            sendKeys(elementKey, longText);
+        } else {
             String number = "1234567890";
             Random rand = new Random();
             String longText = "";
@@ -114,7 +117,7 @@ public class CommonSteps {
                 char character = number.charAt(randIndex);
                 longText += character;
             }
-            sendKeys(elementKey,longText);
+            sendKeys(elementKey, longText);
         }
     }
 
@@ -127,7 +130,7 @@ public class CommonSteps {
         Date date = new Date();
         System.out.println(formatter.format(date));
         LocalDate d = LocalDate.now().plusDays(dayLater);
-        sendKeys(elementKey,d.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+        sendKeys(elementKey, d.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
     }
 
 
@@ -145,7 +148,7 @@ public class CommonSteps {
      */
     @Then("^I wait for ([^\"]*) seconds$")
     public void WaitForNSeconds(int x) {
-        int seconds = x*1000;
+        int seconds = x * 1000;
         sleep(seconds);
     }
 
@@ -156,7 +159,7 @@ public class CommonSteps {
      * Bu fonksiyon istenilen saniye kadar beklemeyi sağlar
      */
     @Given("I open (\\w+(?: \\w+)*) at (\\w+(?: \\w+)*)$")
-    public void openBrowser(String page, @Optional("chrome") String browser){
+    public void openBrowser(String page, @Optional("chrome") String browser) {
 //        Create driver
         switch (browser) {
             case "chrome":
@@ -176,22 +179,31 @@ public class CommonSteps {
                 break;
         }
 
-        sleep(3000);
+//        sleep(3000);
 //        Open Browser
         try {
-            Properties prop=new Properties();
-            FileInputStream ip= new FileInputStream("src/test/config.properties");
+            Properties prop = new Properties();
+            FileInputStream ip = new FileInputStream("src/test/config.properties");
 
             prop.load(ip);
             String url = prop.getProperty(page);
             driver.get(url);
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Cannot read file!");
         }
 //        maximize browser window
         driver.manage().window().maximize();
 
 //        tearDown();
+    }
+
+
+    @Then("^I control text \"([^\"]*)\" of element ([^\"]*)$")
+    public void controlTextOf(String expectedText, By elementKey) {
+
+        WebDriverWait wait = new WebDriverWait(driver, timeOut);
+        String elementText = wait.until(ExpectedConditions.visibilityOfElementLocated(elementKey)).getText();
+        Assert.assertTrue(elementText.contains(expectedText), "Actual message does not contains expected message!\nActual Message: " + elementText + "\nExpected Message: " + expectedText);
     }
 
 }

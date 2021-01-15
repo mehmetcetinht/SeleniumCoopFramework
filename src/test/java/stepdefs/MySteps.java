@@ -1,31 +1,33 @@
 package stepdefs;
 
 
-import cucumber.api.java.After;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
 import org.testng.Assert;
-import org.testng.annotations.Optional;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.AfterTest;
 
-import java.io.FileInputStream;
-import java.util.Properties;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
-public class MySteps extends CommonSteps {
-
-    private WebDriver driver;
+public class MySteps extends AbstractStep {
     private final CommonSteps commonSteps;
+//    private final MySteps mySteps;
 
     public MySteps(CommonSteps commonSteps) {
         this.commonSteps = commonSteps;
+        this.driver = commonSteps.getDriver();
+//        this.mySteps = mySteps;
     }
 
-    @After
+    @AfterSuite
     private void tearDown() {
         // Close browser
         driver.quit();
@@ -40,9 +42,12 @@ public class MySteps extends CommonSteps {
 
 
     @When("^I login with username \"([^\"]*)\" password \"([^\"]*)\"$")
-    public void loginWithUser(String Username,String Password) {
+    public void loginWithUser(String Username,String Password) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+            String elementKey = "id"; //bu xml veya json dosyadan gelecek /xpath vs.
+            String usernameKey = "username";  //bu xml veya json dosyadan gelecek //username, email
+            Method method = By.class.getDeclaredMethod(elementKey, String.class);
 
-            WebElement username = driver.findElement(By.id("username"));
+            WebElement username = driver.findElement((By) method.invoke(null, usernameKey));
             WebElement password = driver.findElement(By.id("password"));
             WebElement loginButton = driver.findElement(By.xpath("//*[text()=' Login']"));
 
